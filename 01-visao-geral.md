@@ -30,7 +30,7 @@ flowchart LR
 
 | Etapa | O que faz | Onde vive |
 |---|---|---|
-| **Medir** | Uma câmera fixa fotografa o trecho 5 vezes, separa o verde por cor (HSV), mede a altura em cm e envia a leitura com o clima do local | Estação + API de leituras |
+| **Medir** | Uma câmera fixa fotografa o trecho 5 vezes, separa o verde por cor (HSV), mede a altura em cm e envia a leitura com o clima do local. Uma grade calibrada em cm e o teorema de Pick apontam também o trecho de grama mais alto do quadro | `prognosisherba-visao` (estação + API de leituras) |
 | **Prever** | Um modelo de *gradient boosting* aprende o crescimento semanal de cada região e simula as próximas semanas, apontando quando a altura cruza o limite de poda | IA de crescimento |
 | **Otimizar** | O backend transforma cada previsão em um local com prazo, prioridade e dificuldade; um solver de programação linear inteira decide qual equipe poda qual local em qual dia | API PrognosisHerba |
 | **Executar** | Cada equipe abre a agenda no celular e marca os locais concluídos | App dos podadores |
@@ -64,7 +64,7 @@ protótipo, não medições de operação.
 | Custo de hardware por poste | ~R$ 130 (ESP32 + câmera OV2640 + caixa + haste) |
 | Densidade proposta | 1 poste a cada 500 m → 30 postes em 15 km ≈ R$ 3.900 |
 | Custo de nuvem da estação e da IA | R$ 0 (planos gratuitos + Open-Meteo) |
-| Testes automatizados | 355 nas três aplicações (180 API, 117 painel, 58 podadores) + ~190 na estação |
+| Testes automatizados | 355 nas três aplicações (180 API, 117 painel, 58 podadores) + 215 na estação |
 
 Os erros da IA foram recalculados rodando de novo a validação do
 notebook `main_v3.ipynb`: 24 semanas de teste, MAE médio por região de

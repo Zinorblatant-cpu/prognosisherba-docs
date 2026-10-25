@@ -27,10 +27,10 @@ aparelho.
 ```mermaid
 flowchart TB
     subgraph campo["Campo"]
-        est["Estação de medição<br/>Python · OpenCV<br/>calibrar.py · medir_grama.py"]
+        est["Estação de medição<br/>Python · OpenCV<br/>calibrar.py · medir_grama.py · pick.py"]
     end
 
-    subgraph grama["Challenge-Grama-Webcam-Exato"]
+    subgraph grama["prognosisherba-visao"]
         apiL["API de leituras<br/>FastAPI · Render"]
         pg[("PostgreSQL 17<br/>Neon<br/>leituras · previsoes")]
     end
@@ -63,7 +63,7 @@ flowchart TB
 
 | Container | Tecnologia | Responsabilidade | Estado |
 |---|---|---|---|
-| **Estação de medição** | Python, OpenCV, numpy | Captura, segmenta, mede a altura em cm, busca o clima, envia a leitura | `calibration.json` local |
+| **Estação de medição** | Python, OpenCV, numpy | Calibra a câmera e a grade em cm; captura, segmenta, mede a altura em cm e a grama maior (Pick); busca o clima; envia a leitura | `calibration.json` local |
 | **API de leituras** | FastAPI, psycopg, PostgreSQL (Neon) | Guarda leituras brutas e serve como cofre das planilhas de previsão. Não calcula nada | Postgres |
 | **Job de previsão** | Python, scikit-learn, pandas | Lê as leituras, roda o modelo, gera a planilha `.xlsx` e publica | Nenhum (o modelo é um arquivo) |
 | **API PrognosisHerba** | FastAPI, PuLP/CBC, scikit-learn | Ingere a planilha, deriva os locais de poda, roda o solver, agrupa regiões, guarda a alocação publicada | CSV (cache) + SQLite |
@@ -240,9 +240,10 @@ API estivesse fora do ar.
 ## 7. Deploy
 
 A hospedagem das três aplicações deste projeto está **em definição**: os
-serviços que rodavam no Render vão sair do ar. A estação e a IA continuam
-nos serviços dos colegas (API de leituras no Render + Neon, job da IA no
-GitHub Actions).
+serviços que rodavam no Render vão sair do ar. A API de leituras em produção
+(`api-grama-webcam`, no Render + Neon) é publicada a partir do
+repositório original do colega; o `prognosisherba-visao` tem o mesmo
+código de API. O job da IA roda no GitHub Actions.
 
 ```mermaid
 flowchart LR
@@ -278,7 +279,7 @@ dele.
 | API PrognosisHerba | 180 (pytest) | Sem mock do solver nem do banco: o CBC resolve de verdade e o SQLite grava de verdade. A suíte zera `GRAMA_API_KEY`, então nunca toca a rede |
 | Painel | 117 (Vitest + Testing Library) | Cobertura mínima de 100% exigida em `vitest.config.ts` |
 | App dos podadores | 58 (Vitest + Testing Library) | Mesma regra de 100% |
-| Estação + API de leituras | ~190 (pytest) | Contra Postgres real, numa *branch* de teste do Neon |
+| `prognosisherba-visao` (estação + API de leituras) | 215 (pytest) | A API roda contra Postgres real, numa *branch* de teste do Neon. Os 140 testes da estação (visão, Pick, calibração, câmera, clima) rodam sem banco |
 
 Lint com `oxlint` nos frontends.
 

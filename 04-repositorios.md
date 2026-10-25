@@ -9,21 +9,26 @@ repositório, todos com o prefixo `prognosisherba-` seguido do papel:
 | [**prognosisherba-api**](https://github.com/Zinorblatant-cpu/prognosisherba-api) | FastAPI, solver HoroHerba (PuLP/CBC), derivação das previsões, clusterização, persistência, `MODELO_MATEMATICO.md` | 180 (pytest) |
 | [**prognosisherba-painel**](https://github.com/Zinorblatant-cpu/prognosisherba-painel) | Painel de planejamento: Previsões, Otimização, Cronograma, Agrupamento, Monitoramento, página da equipe e vídeo da landing | 117 (Vitest), cobertura 100% |
 | [**prognosisherba-podadores**](https://github.com/Zinorblatant-cpu/prognosisherba-podadores) | App das equipes em campo (agenda do dia, marcar concluído) | 58 (Vitest), cobertura 100% |
+| [**prognosisherba-visao**](https://github.com/Zinorblatant-cpu/prognosisherba-visao) | Estação de medição (OpenCV, grade em cm, teorema de Pick) + API de leituras | 215 (pytest) |
 | [**prognosisherba-docs**](https://github.com/Zinorblatant-cpu/prognosisherba-docs) | Esta documentação e a apresentação | — |
 
-Os dois repositórios dos colegas continuam onde estão:
+O `prognosisherba-visao` parte do histórico completo do
+[Challenge-Grama-Webcam-Exato](https://github.com/carrerigcg/Challenge-Grama-Webcam-Exato), do colega, e acrescenta a
+grade em cm e a medição da grama maior pelo teorema de Pick. A API de
+leituras em produção ainda é publicada a partir do repositório original.
+
+A IA continua no repositório do colega:
 
 | Repositório | Papel | Nome sugerido no mesmo padrão |
 |---|---|---|
-| [Challenge-Grama-Webcam-Exato](https://github.com/carrerigcg/Challenge-Grama-Webcam-Exato) | Estação de medição + API de leituras | `prognosisherba-estacao` |
 | [IAs---Challenge-Motiva](https://github.com/Felipek06/IAs---Challenge-Motiva) | IA de crescimento | `prognosisherba-ia` |
 
-Renomear é decisão de cada dono. O GitHub redireciona a URL antiga
+Renomear é decisão do dono. O GitHub redireciona a URL antiga
 depois de um rename.
 
 ```mermaid
 flowchart LR
-    est["Challenge-Grama-Webcam-Exato<br/>(estação)"] --> ia["IAs---Challenge-Motiva<br/>(IA)"]
+    est["prognosisherba-visao<br/>(estação)"] --> ia["IAs---Challenge-Motiva<br/>(IA)"]
     ia --> est
     est --> api["prognosisherba-api"]
     api --> painel["prognosisherba-painel"]
@@ -66,7 +71,7 @@ pontos quebra outro repositório:
 
 | Produtor → consumidor | Contrato | Onde está definido |
 |---|---|---|
-| estação → API de leituras | `POST /leituras` com `regiao`, `altura_cm`, `nivel_risco`, `temperatura_c`, `clima` | `api/main.py` da estação |
+| estação → API de leituras | `POST /leituras` com `regiao`, `altura_cm`, `nivel_risco`, `temperatura_c`, `clima` | `api/main.py` do `prognosisherba-visao` |
 | IA → API de leituras → `prognosisherba-api` | Planilha `.xlsx` com a aba `previsao_52_semanas_podas` e as colunas `data`, `altura_prevista_cm`, `nivel_alerta`, `houve_poda`, `id_regiao` | `fonte_previsoes.py` (`ABA_PREVISAO`, `COLUNAS_CSV`) |
 | `prognosisherba-api` → painel e podadores | Rotas e schemas JSON | `server.py` (Pydantic), publicado em `/openapi.json` |
 | `prognosisherba-api` → podadores | `/alocacao/atual` e `/alocacao/locais/concluir` | `server.py` e `src/lib/types.ts` do app |

@@ -27,7 +27,8 @@ Notação usada em todo o documento:
 
 ## §1 · Medição da altura por visão computacional
 
-Repositório da estação: `calibrar.py` e `medir_grama.py`.
+Repositório [`prognosisherba-visao`](https://github.com/Zinorblatant-cpu/prognosisherba-visao):
+`calibrar.py`, `medir_grama.py` e `pick.py`.
 
 ### 1.1 Calibração (uma vez por câmera)
 
@@ -48,10 +49,10 @@ M_k(u,v) = \mathbb{1}\big[(35, 40, 40) \le \mathrm{HSV}(I_k(u,v)) \le (85, 255, 
 $$
 
 Em seguida, abertura e fechamento morfológicos com elemento estruturante
-$B$ de $3 \times 3$ removem pontos soltos e fecham buracos:
+$E$ de $3 \times 3$ removem pontos soltos e fecham buracos:
 
 $$
-M'_k = (M_k \circ B) \bullet B
+M'_k = (M_k \circ E) \bullet E
 $$
 
 A máscara final é a **mediana temporal** dos cinco quadros, que elimina
@@ -97,6 +98,106 @@ $$
 \text{ALTA} & h > 7
 \end{cases}
 $$
+
+### 1.5 Grade em cm
+
+A calibração também grava em `calibration.json` uma **grade de pontos**
+com passo $s = 0{,}5$ cm. A origem fica no chão: $x = 0$ na borda
+esquerda do quadro e altura $0$ na linha do chão, crescendo para cima.
+Cada ponto da grade ocupa
+
+$$
+q = \rho\, s \quad [\text{px por ponto}]
+$$
+
+e o ponto $(i, j)$ da grade corresponde ao pixel
+
+$$
+(x, y) = \big(\operatorname{round}(i\,q),\ \operatorname{round}(y_{\text{chão}} - j\,q)\big)
+$$
+
+No sentido contrário, qualquer pixel tem uma distância conhecida em cm:
+
+$$
+(x, y) \mapsto \left(\frac{x}{\rho},\ \frac{y_{\text{chão}} - y}{\rho}\right)
+$$
+
+Na tela de confirmação do `calibrar.py` a grade aparece desenhada e, ao
+passar o mouse, aparece a distância do ponto mais próximo (por exemplo,
+`x=12,5cm  altura=+3,0cm`).
+
+### 1.6 Grama maior pelo teorema de Pick
+
+A leitura de §1.3 olha só três colunas. Para achar o trecho mais alto do
+quadro, a estação mede o **perfil inteiro** da grama, coluna a coluna da
+grade.
+
+**Perfil.** São $N = \lfloor (W-1)/q \rfloor + 1$ colunas, em
+$x_i = \operatorname{round}(i\,q)$. Em cada uma, o topo do verde (§1.3)
+vira uma altura inteira em pontos da grade:
+
+$$
+g_i =
+\begin{cases}
+\operatorname{round}\!\left(\dfrac{y_{\text{chão}} - y_i^{\text{topo}}}{q}\right) & \text{se há verde acima do chão} \\
+0 & \text{caso contrário}
+\end{cases}
+$$
+
+**Faixas.** As colunas são divididas em $K = 8$ faixas verticais, com
+limites $\ell_k = \operatorname{round}\big(k(N-1)/K\big)$, $k = 0, \dots, K$. A
+faixa $k$ vai da coluna $\ell_k$ à $\ell_{k+1}$.
+
+**Polígonos.** Dentro de uma faixa, cada trecho contínuo de colunas com
+$g_i > 0$ vira um polígono $P$ com vértices na grade: os topos
+$(i, g_i)$, fechados no chão $(\cdot, 0)$ nas colunas vizinhas. Fechar nas
+vizinhas impede que o polígono encoste em si mesmo no chão, porque o
+teorema de Pick exige polígono simples.
+
+**Área.** Para um polígono simples com vértices em pontos da grade, o
+**teorema de Pick** dá a área contando pontos:
+
+$$
+A(P) = I + \frac{B}{2} - 1 \quad [\text{pontos}^2]
+$$
+
+- $I$ = pontos da grade estritamente dentro de $P$, contados por
+  *ray casting* com aritmética inteira exata;
+- $B$ = pontos sobre a borda. Uma aresta $(\Delta x, \Delta y)$ passa
+  por $\gcd(|\Delta x|, |\Delta y|)$ pontos sem contar o final, logo
+  $B = \sum_{\text{arestas}} \gcd(|\Delta x|, |\Delta y|)$.
+
+Polígonos degenerados (todos os vértices numa reta) têm área 0.
+
+**Altura média da faixa.** Área dividida pela largura, convertida para cm:
+
+$$
+\bar g_k = \frac{\sum_{P \subset \text{faixa } k} A(P)}{\ell_{k+1} - \ell_k} \cdot s \quad [\text{cm}]
+$$
+
+Como os vértices estão na grade, o resultado de Pick é igual ao da
+fórmula do laço (*shoelace*) e ao da regra dos trapézios sobre o perfil,
+$\sum_i \tfrac{g_i + g_{i+1}}{2}$; os testes de `pick.py` conferem essa
+igualdade. Na prática, $\bar g_k$ aproxima a altura média
+$\frac{1}{L}\int h(x)\,dx$ da faixa, amostrada a cada 0,5 cm.
+
+**Grama maior.** É a faixa de maior altura média:
+
+$$
+k^{*} = \arg\max_k \bar g_k, \qquad \text{reportada só se } \bar g_{k^{*}} > 0
+$$
+
+Ela aparece no terminal e na imagem de depuração
+(`debug/ultima_medicao.png`). **O valor enviado à API continua sendo a
+mediana das três colunas** (§1.3); a grama maior é informação adicional
+para quem opera a estação.
+
+| | Mediana de 3 colunas (§1.3) | Grama maior por Pick (§1.6) |
+|---|---|---|
+| Amostra | 3 colunas fixas | Todas as colunas da grade (a cada 0,5 cm) |
+| Mede | Altura típica do quadro | Altura média do trecho mais alto |
+| Robustez | Ignora um galho isolado | Média por faixa suaviza picos de uma coluna |
+| Vai para a API | Sim | Não |
 
 ---
 

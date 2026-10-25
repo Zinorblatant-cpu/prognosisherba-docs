@@ -14,7 +14,7 @@ O sistema fecha um ciclo de quatro etapas, cada uma num repositório:
 
 | Etapa | Repositório |
 |---|---|
-| Medir | [Challenge-Grama-Webcam-Exato](https://github.com/carrerigcg/Challenge-Grama-Webcam-Exato) |
+| Medir | [prognosisherba-visao](https://github.com/Zinorblatant-cpu/prognosisherba-visao) |
 | Prever | [IAs---Challenge-Motiva](https://github.com/Felipek06/IAs---Challenge-Motiva) |
 | Otimizar | [prognosisherba-api](https://github.com/Zinorblatant-cpu/prognosisherba-api) |
 | Planejar e acompanhar | [prognosisherba-painel](https://github.com/Zinorblatant-cpu/prognosisherba-painel) |
@@ -24,7 +24,7 @@ O sistema fecha um ciclo de quatro etapas, cada uma num repositório:
 |---|---|
 | [01 · Visão geral](01-visao-geral.md) | O problema da Motiva, a solução e o fluxo de uso |
 | [02 · Arquitetura de software](02-arquitetura.md) | Contexto, containers, componentes, sequência, dados, deploy e decisões |
-| [03 · Modelo matemático](03-modelo-matematico.md) | Medição por visão computacional, previsão por *gradient boosting*, derivação dos prazos, modelo de programação linear inteira e clusterização |
+| [03 · Modelo matemático](03-modelo-matematico.md) | Medição por visão computacional (incluindo a grade em cm e o teorema de Pick), previsão por *gradient boosting*, derivação dos prazos, modelo de programação linear inteira e clusterização |
 | [04 · Repositórios](04-repositorios.md) | Os repositórios, os contratos entre eles e como foram separados |
 | [Apresentação](apresentacao/apresentacao.html) | Slides da apresentação do projeto (baixe e abra no navegador) |
 
@@ -43,3 +43,5 @@ também renderiza.
 | **HoroHerba / Horoprognosis** | O modelo de alocação das equipes. "HoroHerba" é o nome usado na apresentação; `horoprognosis.py` é o nome no código |
 | **Capacidade diária** | Orçamento de esforço de uma equipe por dia ($K = 3$ pontos) |
 | **Folga** | Dias entre o dia agendado e o prazo do local |
+| **Grade** | Pontos a cada 0,5 cm gravados na calibração, com origem no chão; dão a distância em cm de qualquer pixel |
+| **Grama maior** | Faixa do quadro com maior altura média, medida pelo teorema de Pick ($A = I + B/2 - 1$) |
